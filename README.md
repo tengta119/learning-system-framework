@@ -1,0 +1,44 @@
+# 可复用的学习教练系统
+
+把一份**任意领域**的学习计划交给 Agent，初始化任务卡、学习进度、问答库和错题本；之后按「讲解 → 自己练习 → 答疑 → 审查 → 验收 → 复盘」运行。此仓库只提供规则与模板，**不包含原 TS/React 项目的个人进度**，也没有自动解析脚本：初始化由能读写文件的 Agent 按 `AGENTS.md` 执行。
+
+## 快速开始
+
+1. 在支持读取 `AGENTS.md` 的 Agent 中打开 `learning-system-framework`。
+2. 把计划表作为消息粘贴，或给出文件路径（Markdown、纯文本或可读取的表格均可）；可选给出自己的已有经验与目标。参考 [`examples/plan-example.md`](examples/plan-example.md)。
+3. 发出指令，例如：
+
+   > 请读取 D:\tmp\my-plan.md，依据 AGENTS.md 初始化通用学习系统，工作区为 D:\tmp\my-learning。只初始化，不开始任务。
+
+   若不指定工作区，记录生成在本仓库 `docx/`。建议为不同领域各用一个独立工作区。
+4. 核对 `工作区/AGENTS.md`（若无既有冲突）及 `工作区/docx/plan.md`、`learning.md`、`tasks/README.md` 和任务卡，再说“开始 TASK-001”。练习时直接提问，提交后说“检查 TASK-001”，复习时说“开始口试”。这些是**自然语言指令，不依赖斜杠命令插件**。
+
+## 在另一个项目持续使用（新会话免重复输入）
+
+- 初始化独立学习工作区时，Agent 参照 [`templates/workspace-agents.md`](templates/workspace-agents.md) 在**工作区根目录**生成领域适配、可独立使用的 `AGENTS.md`，记录固定背景、工作区路径、阅读入口和闭环规则；动态状态仍保存在 `docx/`，不复制进根目录规则。模板只在生成时使用，不必复制整个 `templates/`。
+- 后续从**目标工作区目录**启动新会话，让支持 `AGENTS.md` 的客户端自动加载根目录规则，再读 `docx/learning.md` 与任务索引；可直接说“开始 TASK-001”或“继续上次任务”，无需每次粘贴计划。是否自动发现取决于客户端和启动目录，不能保证从其他目录打开时生效；无法自动加载时明确指定工作区 `AGENTS.md`，或把它交给不支持该机制的客户端作为项目指令。
+- 目标项目已有 `AGENTS.md` 时**绝不覆盖**：先检查项目约束，无冲突再增量合并学习章节；若冲突或归属不清，请用户确认。不能合并时在 `docx/README.md` 说明显式加载方式。不要将本系统仓库的通用 `AGENTS.md` 原样复制到别的工作区：其中的仓库定位与目标项目不同。用户要求 `Agent.md` 时可创建为指向 `AGENTS.md` 的兼容说明，**不要仅有 `Agent.md`**。
+- 教练必须有目标工作区的文件读写权限，才能跨会话持续同步；此机制不是自动后台执行。
+
+## 目录约定
+
+```text
+st-codex-gpt/
+  AGENTS.md                # 初始化 + 运行的领域无关规则
+  templates/               # 初始化时的结构参考，含 workspace-agents.md
+  examples/plan-example.md # 示例输入（不会自动导入）
+
+工作区/
+  AGENTS.md                # 常驻入口；已有文件时只安全增量合并
+  docx/
+    plan.md                # 计划原文及来源
+    README.md              # 导航和使用说明
+    learning.md            # 阶段、任务状态与技能板
+    tasks/README.md        # 任务索引
+    tasks/TASK-001.md      # 可验证的任务卡
+    questions/README.md    # 问答分类索引
+    questions/<分类>.md     # 按提问实际创建
+    mistakes.md            # 典型错误及复查
+```
+
+计划改版时请提供新版并说“增量更新计划”，不要删掉原学习记录再初始化。系统不会自动定时执行，也不会假装已完成没有证据的任务。
